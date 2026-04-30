@@ -8,8 +8,6 @@ function IconMarkup({ size, maskable = false }) {
   const symbolRadius = Math.round(symbolSize * 0.26);
   const checkWidth = Math.round(symbolSize * 0.34);
   const checkHeight = Math.round(symbolSize * 0.22);
-  const lineWidth = Math.round(frameSize * 0.16);
-  const lineHeight = Math.max(10, Math.round(frameSize * 0.03));
 
   return (
     <div
@@ -30,8 +28,7 @@ function IconMarkup({ size, maskable = false }) {
           position: "absolute",
           inset: Math.round(size * 0.07),
           borderRadius: Math.round(size * 0.26),
-          border: `${Math.max(2, Math.round(size * 0.009))}px solid rgba(255, 255, 255, 0.1)`,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)"
+          border: `${Math.max(2, Math.round(size * 0.009))}px solid rgba(255, 255, 255, 0.1)`
         }}
       />
 
@@ -62,55 +59,19 @@ function IconMarkup({ size, maskable = false }) {
       />
 
       <div
-        style={{
-          display: "flex",
-          width: frameSize,
-          height: frameSize,
-          borderRadius: frameRadius,
-          background: "linear-gradient(180deg, #f8fbff 0%, #e2e8f0 100%)",
-          border: `${Math.max(2, Math.round(size * 0.01))}px solid rgba(255, 255, 255, 0.72)`,
-          boxShadow:
-            "0 24px 60px rgba(15, 23, 42, 0.34), inset 0 1px 0 rgba(255,255,255,0.9)",
-          position: "relative",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <div
           style={{
-            position: "absolute",
-            top: Math.round(frameSize * 0.12),
-            left: Math.round(frameSize * 0.14),
-            width: lineWidth,
-            height: lineHeight,
-            borderRadius: "999px",
-            background: "#cbd5e1"
-          }}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            top: Math.round(frameSize * 0.12),
-            right: Math.round(frameSize * 0.14),
             display: "flex",
-            flexDirection: "column",
-            gap: Math.round(frameSize * 0.035)
+            width: frameSize,
+            height: frameSize,
+            borderRadius: frameRadius,
+            background: "#eef2f7",
+            border: `${Math.max(2, Math.round(size * 0.01))}px solid rgba(255, 255, 255, 0.4)`,
+            boxShadow: "0 24px 60px rgba(15, 23, 42, 0.34)",
+            position: "relative",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
-          {[0, 1, 2].map((item) => (
-            <div
-              key={item}
-              style={{
-                width: lineWidth,
-                height: lineHeight,
-                borderRadius: "999px",
-                background: item === 0 ? "#94a3b8" : "#dbe4ee"
-              }}
-            />
-          ))}
-        </div>
-
         <div
           style={{
             display: "flex",
