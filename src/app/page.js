@@ -368,7 +368,7 @@ export default function Home() {
                           }`}
                         >
                           <span>{option}</span>
-                          {themePreference === option && <span className="text-xs lowercase">[active]</span>}
+                          {themePreference === option && <span className="text-xs">[active]</span>}
                         </button>
                       ))}
                     </div>
