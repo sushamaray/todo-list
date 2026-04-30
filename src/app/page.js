@@ -4,6 +4,7 @@ import { toJpeg, toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import TaskItem from "./components/TaskItem";
 
+const MAX_EXPORT_DIMENSION = 16_000;
 const FILTERS = ["all", "pending", "completed"];
 const THEME_OPTIONS = ["light", "dark", "system"];
 const TASKS_STORAGE_KEY = "tasks";
@@ -208,8 +209,8 @@ export default function Home() {
   const [dateActivated, setDateActivated] = useState(false);
   const [filter, setFilter] = useState("all");
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-  const [backupMessage, setBackupMessage] = useState("");
   const taskBoardRef = useRef(null);
+  const exportBoardRef = useRef(null);
   const tasks = useSyncExternalStore(
     subscribeToTasks,
     getStoredTasks,
@@ -326,24 +327,38 @@ export default function Home() {
     link.click();
   };
 
+  const getTaskBoardExportOptions = (node) => {
+    const width = Math.max(node.scrollWidth, node.clientWidth, node.offsetWidth);
+    const height = Math.max(node.scrollHeight, node.clientHeight, node.offsetHeight);
+    const exportScale = Math.min(1, MAX_EXPORT_DIMENSION / width, MAX_EXPORT_DIMENSION / height);
+
+    return {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: resolvedTheme === "dark" ? "#111827" : "#fffaf2",
+      width,
+      height,
+      canvasWidth: Math.max(1, Math.round(width * exportScale)),
+      canvasHeight: Math.max(1, Math.round(height * exportScale)),
+      style: {
+        width: `${width}px`,
+        height: `${height}px`,
+        overflow: "visible"
+      }
+    };
+  };
+
   const exportTaskBoard = async (format) => {
-    const node = taskBoardRef.current;
+    const node = exportBoardRef.current;
 
     if (!node) return;
 
     try {
-      setBackupMessage("Preparing task board backup...");
-
-      const exportOptions = {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: resolvedTheme === "dark" ? "#111827" : "#fffaf2"
-      };
+      const exportOptions = getTaskBoardExportOptions(node);
 
       if (format === "png") {
         const dataUrl = await toPng(node, exportOptions);
         downloadDataUrl(dataUrl, "png");
-        setBackupMessage("Task board exported as PNG.");
         return;
       }
 
@@ -353,7 +368,6 @@ export default function Home() {
           quality: 0.95
         });
         downloadDataUrl(dataUrl, "jpg");
-        setBackupMessage("Task board exported as JPG.");
         return;
       }
 
@@ -364,8 +378,6 @@ export default function Home() {
           unit: "px",
           format: "a4"
         });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
         const img = new Image();
 
         await new Promise((resolve, reject) => {
@@ -374,19 +386,61 @@ export default function Home() {
           img.src = dataUrl;
         });
 
-        const scale = Math.min(pageWidth / img.width, pageHeight / img.height);
-        const renderWidth = img.width * scale;
-        const renderHeight = img.height * scale;
-        const x = (pageWidth - renderWidth) / 2;
-        const y = 20;
+        const pagePadding = 20;
+        const pageWidth = pdf.internal.pageSize.getWidth() - pagePadding * 2;
+        const pageHeight = pdf.internal.pageSize.getHeight() - pagePadding * 2;
+        const scale = pageWidth / img.width;
+        const sourceSliceHeight = Math.max(1, Math.floor(pageHeight / scale));
+        let sourceOffsetY = 0;
+        let isFirstPage = true;
 
-        pdf.addImage(dataUrl, "PNG", x, y, renderWidth, renderHeight);
+        while (sourceOffsetY < img.height) {
+          const currentSliceHeight = Math.min(sourceSliceHeight, img.height - sourceOffsetY);
+          const sliceCanvas = document.createElement("canvas");
+          const sliceContext = sliceCanvas.getContext("2d");
+
+          if (!sliceContext) {
+            throw new Error("Unable to prepare PDF export canvas.");
+          }
+
+          sliceCanvas.width = img.width;
+          sliceCanvas.height = currentSliceHeight;
+          sliceContext.drawImage(
+            img,
+            0,
+            sourceOffsetY,
+            img.width,
+            currentSliceHeight,
+            0,
+            0,
+            img.width,
+            currentSliceHeight
+          );
+
+          const sliceDataUrl = sliceCanvas.toDataURL("image/png");
+          const renderHeight = currentSliceHeight * scale;
+
+          if (!isFirstPage) {
+            pdf.addPage();
+          }
+
+          pdf.addImage(
+            sliceDataUrl,
+            "PNG",
+            pagePadding,
+            pagePadding,
+            pageWidth,
+            renderHeight
+          );
+
+          sourceOffsetY += currentSliceHeight;
+          isFirstPage = false;
+        }
+
         pdf.save(`todo-list-task-board-${new Date().toISOString().slice(0, 10)}.pdf`);
-        setBackupMessage("Task board exported as PDF.");
       }
     } catch (error) {
       console.error("Failed to export task board", error);
-      setBackupMessage("Task board export failed. Please try again.");
     }
   };
 
@@ -747,17 +801,23 @@ export default function Home() {
             ref={taskBoardRef}
             className="theme-task-board mt-5 rounded-[1.7rem] border p-4 sm:p-5"
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+            <div className="export-board-header flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="export-board-heading">
                 <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
                   Task Board
                 </p>
-                <h3 className="theme-heading mt-1 text-2xl font-space font-bold">
+                <h3
+                  data-export-hidden="true"
+                  className="theme-heading mt-1 text-2xl font-space font-bold"
+                >
                   Sorted by urgency
                 </h3>
               </div>
 
-              <div className="flex flex-col items-start gap-2 sm:items-end">
+              <div
+                data-export-hidden="true"
+                className="flex flex-col items-start gap-2 sm:items-end"
+              >
                 <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
                   Backup
                 </span>
@@ -784,15 +844,10 @@ export default function Home() {
                     PDF
                   </button>
                 </div>
-                {backupMessage && (
-                  <p className="theme-copy text-right text-sm leading-6 font-alef">
-                    {backupMessage}
-                  </p>
-                )}
               </div>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="export-board-list mt-4 space-y-3">
               {filteredTasks.map((task) => (
                 <TaskItem
                   key={task.id}
@@ -825,6 +880,97 @@ export default function Home() {
             </div>
           </div>
         </section>
+      </div>
+
+      <div className="pointer-events-none absolute left-[-99999px] top-0 opacity-0">
+        <div
+          ref={exportBoardRef}
+          className="export-capture-frame"
+        >
+          <div className="export-capture-board">
+            <div className="export-capture-header">
+              <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
+                Task Board
+              </p>
+            </div>
+
+            <div className="export-capture-list">
+              {filteredTasks.map((task) => {
+                const overdue = isTaskOverdue(task);
+
+                return (
+                  <article
+                    key={`export-${task.id}`}
+                    className={`export-capture-card ${task.completed ? "is-completed" : overdue ? "is-overdue" : ""}`}
+                  >
+                    <div className="export-capture-main">
+                      <span
+                        aria-hidden="true"
+                        className={`export-capture-check ${task.completed ? "is-checked" : ""}`}
+                      >
+                        {task.completed ? "✓" : ""}
+                      </span>
+
+                      <div className="export-capture-content">
+                        <div className="export-capture-title-row">
+                          <p className={`export-capture-title ${task.completed ? "is-completed" : ""}`}>
+                            {task.text}
+                          </p>
+
+                          {overdue && (
+                            <span className="export-capture-badge is-overdue">
+                              Overdue
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="export-capture-meta">
+                          {task.category && (
+                            <span className="export-capture-badge is-category">
+                              {task.category}
+                            </span>
+                          )}
+
+                          {Array.isArray(task.tags) && task.tags.map((tag) => (
+                            <span
+                              key={`export-${task.id}-${tag}`}
+                              className="export-capture-badge is-tag"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+
+                          <span className={`export-capture-badge ${overdue ? "is-overdue" : task.completed ? "is-completed" : "is-date"}`}>
+                            {task.dueDate ? `Due ${formatDisplayDate(task.dueDate)}` : "No due date"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+
+              {filteredTasks.length === 0 && (
+                <div className="theme-empty rounded-[1.5rem] border px-5 py-10 text-center">
+                  <p className="theme-heading text-xl font-space">
+                    {tasks.length === 0
+                      ? "No tasks yet"
+                      : hasActiveSearch
+                        ? "No matching tasks"
+                        : `No ${filter} tasks`}
+                  </p>
+                  <p className="theme-copy mt-2 text-sm leading-6 font-alef">
+                    {tasks.length === 0
+                      ? "Add your first task, give it a due date if you want, and let the board take care of the ordering."
+                      : hasActiveSearch
+                        ? "Try another search term or add a task that fits this view."
+                        : `Switch filters or add a new task to fill this ${filter} lane.`}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );

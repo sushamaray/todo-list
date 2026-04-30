@@ -83,8 +83,8 @@ export default function TaskItem({
     <article
       className={`task-item-card theme-card animate-[fadeIn_0.24s_ease-in] rounded-[1.45rem] border p-4 transition-all duration-300 ${cardClasses}`}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className="task-item-shell flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="task-item-main flex min-w-0 flex-1 items-start gap-3">
           <button
             type="button"
             onClick={() => toggleTask(task.id)}
@@ -192,7 +192,10 @@ export default function TaskItem({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+        <div
+          data-export-hidden="true"
+          className="flex flex-wrap items-center gap-2 lg:justify-end"
+        >
           {isEditing ? (
             <>
               <button

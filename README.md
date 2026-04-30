@@ -12,7 +12,7 @@ Live demo: https://todolist-sush.vercel.app
 - Filter tasks by `all`, `pending`, and `completed`
 - Optional `category`, `tags`, and `due date` fields during task creation and editing
 - Smart task ordering that keeps overdue and dated tasks near the top
-- Export only the task board as `PNG`, `JPG`, or `PDF` from right-aligned backup actions in the board header
+- Export a backup-only task board as `PNG`, `JPG`, or `PDF` from right-aligned backup actions in the board header
 - Theme switcher with `light`, `dark`, and `system` modes, with `system` as the default on first open
 - Flexible due date flow: starts as `dd/mm/yyyy`, auto-fills today on activation, and stays editable
 - App icons for favicon, Apple touch, PWA, and Android maskable installs
@@ -55,7 +55,9 @@ src/app/
 - When the due date field is first activated, it fills with the current local date automatically.
 - Users can still replace that auto-filled date with any other date they want.
 - Theme preference is saved locally and defaults to `system` for first-time visitors.
-- Backup exports capture only the visible task board section, not the whole page.
+- Backup exports capture a dedicated board-only layout, not the whole page.
+- Exported backups include the full task board content, including long task lists.
+- Exported backups hide board controls and task action buttons for a cleaner saved result.
 
 ## Available Scripts
 
