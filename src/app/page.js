@@ -6,6 +6,8 @@ import TaskItem from "./components/TaskItem";
 
 const MAX_EXPORT_DIMENSION = 16_000;
 const FILTERS = ["all", "pending", "completed"];
+const CATEGORY_OPTIONS = ["Work", "Personal", "Study", "Other"];
+const TAG_OPTIONS = ["Urgent", "Low", "Medium"];
 const THEME_OPTIONS = ["light", "dark", "system"];
 const TASKS_STORAGE_KEY = "tasks";
 const TASKS_EVENT = "tasks-updated";
@@ -16,6 +18,10 @@ let cachedTasksRaw = null;
 let cachedTasksSnapshot = EMPTY_TASKS;
 
 function normalizeTask(task) {
+  const legacyTags = Array.isArray(task?.tags)
+    ? task.tags.filter((tag) => typeof tag === "string" && tag.trim()).map((tag) => tag.trim())
+    : [];
+
   return {
     ...task,
     id: typeof task?.id === "number" || typeof task?.id === "string"
@@ -25,22 +31,12 @@ function normalizeTask(task) {
     completed: Boolean(task?.completed),
     dueDate: typeof task?.dueDate === "string" ? task.dueDate : "",
     category: typeof task?.category === "string" ? task.category : "",
+    tag: typeof task?.tag === "string"
+      ? task.tag
+      : legacyTags[0] || "",
     order: Number.isFinite(task?.order) ? task.order : 0,
-    tags: Array.isArray(task?.tags)
-      ? task.tags.filter((tag) => typeof tag === "string" && tag.trim()).map((tag) => tag.trim())
-      : []
+    tags: legacyTags
   };
-}
-
-function parseTags(value) {
-  return Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-    )
-  );
 }
 
 function formatDisplayDate(value) {
@@ -203,11 +199,13 @@ function subscribeToSystemTheme(callback) {
 export default function Home() {
   const [input, setInput] = useState("");
   const [category, setCategory] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const [tag, setTag] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [dateActivated, setDateActivated] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  const [openControlPanel, setOpenControlPanel] = useState(null);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const taskBoardRef = useRef(null);
   const exportBoardRef = useRef(null);
@@ -249,14 +247,14 @@ export default function Home() {
       text: input.trim(),
       completed: false,
       dueDate: dueDate || "",
-      category: category.trim(),
-      tags: parseTags(tagsInput)
+      category,
+      tag
     };
 
     persistTasks((prev) => [...prev, newTask]);
     setInput("");
     setCategory("");
-    setTagsInput("");
+    setTag("");
     setDueDate("");
     setDateActivated(false);
   };
@@ -287,6 +285,15 @@ export default function Home() {
 
   const clearCompleted = () => {
     persistTasks((prev) => prev.filter((task) => !task.completed));
+  };
+
+  const clearAllTasks = () => {
+    persistTasks([]);
+    setExpandedTaskId(null);
+  };
+
+  const toggleControlPanel = (panelName) => {
+    setOpenControlPanel((prev) => (prev === panelName ? null : panelName));
   };
 
   const getPriority = (task) => {
@@ -457,7 +464,7 @@ export default function Home() {
       const searchableText = [
         task.text,
         task.category,
-        ...(Array.isArray(task.tags) ? task.tags : [])
+        task.tag
       ]
         .join(" ")
         .toLowerCase();
@@ -476,6 +483,7 @@ export default function Home() {
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const isInputEmpty = !input.trim();
   const hasCompletedTasks = completedCount > 0;
+  const hasTasks = tasks.length > 0;
   const resolvedTheme = themePreference === "system" ? systemTheme : themePreference;
   const hasActiveSearch = normalizedSearchQuery.length > 0;
   const themeSummary = themePreference === "system"
@@ -660,32 +668,38 @@ export default function Home() {
                       <br />
                       (Optional)
                     </span>
-                    <input
+                    <select
                       className="input-shell font-lexend"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      placeholder="Work, Personal"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isInputEmpty) addTask();
-                      }}
-                    />
+                    >
+                      <option value="">Select category</option>
+                      {CATEGORY_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </label>
 
                   <label className="flex flex-col gap-2">
                     <span className="theme-copy-muted block min-h-10 text-xs uppercase tracking-[0.22em] font-lexend">
-                      Tags
+                      Tag
                       <br />
                       (Optional)
                     </span>
-                    <input
+                    <select
                       className="input-shell font-lexend"
-                      value={tagsInput}
-                      onChange={(e) => setTagsInput(e.target.value)}
-                      placeholder="urgent, design"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isInputEmpty) addTask();
-                      }}
-                    />
+                      value={tag}
+                      onChange={(e) => setTag(e.target.value)}
+                    >
+                      <option value="">Select tag</option>
+                      {TAG_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </div>
 
@@ -730,69 +744,25 @@ export default function Home() {
 
         <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:p-7">
           <div className="theme-card rounded-[1.7rem] border p-4 sm:p-5">
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-4">
-                <div className="grid gap-3">
-                  <label className="flex flex-col gap-2">
-                    <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                      Search
-                    </span>
-                    <input
-                      className="input-shell font-lexend"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search tasks, categories, or tags"
-                    />
-                  </label>
-                </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                  View Controls
+                </p>
+                <p className="theme-heading mt-1 text-lg font-space font-bold">
+                  Search, filter, and clear from the floating panel
+                </p>
+              </div>
 
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-2">
-                    <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                      Filter
-                    </span>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex flex-wrap gap-2">
-                        {FILTERS.map((item) => (
-                          <button
-                            key={item}
-                            onClick={() => setFilter(item)}
-                            className={`btn-base btn-sm capitalize ${
-                              filter === item
-                                ? "theme-toggle-active"
-                                : "theme-filter"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={clearCompleted}
-                        disabled={!hasCompletedTasks}
-                        className={`btn-base btn-sm self-start sm:self-auto ${
-                          hasCompletedTasks
-                            ? "btn-danger"
-                            : "btn-muted"
-                        }`}
-                      >
-                        Clear Completed
-                      </button>
-                    </div>
-                  </div>
-
-                  {hasActiveSearch && (
-                    <button
-                      onClick={() => {
-                        setSearchQuery("");
-                      }}
-                      className="btn-base btn-sm theme-filter self-start"
-                    >
-                      Clear Search
-                    </button>
-                  )}
-                </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="task-meta-badge task-meta-badge-category">
+                  {filter[0].toUpperCase() + filter.slice(1)}
+                </span>
+                {hasActiveSearch && (
+                  <span className="task-meta-badge task-meta-badge-neutral">
+                    Search: {searchQuery}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -856,6 +826,10 @@ export default function Home() {
                   deleteTask={deleteTask}
                   updateTask={updateTask}
                   formatDisplayDate={formatDisplayDate}
+                  categoryOptions={CATEGORY_OPTIONS}
+                  tagOptions={TAG_OPTIONS}
+                  expandedTaskId={expandedTaskId}
+                  setExpandedTaskId={setExpandedTaskId}
                 />
               ))}
 
@@ -880,6 +854,124 @@ export default function Home() {
             </div>
           </div>
         </section>
+      </div>
+
+      <div className="floating-controls">
+        {openControlPanel && (
+          <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
+            {openControlPanel === "search" && (
+              <div className="flex min-w-[16rem] flex-col gap-2">
+                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                  Search
+                </span>
+                <input
+                  className="input-shell min-h-11 font-lexend"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search tasks, categories, or tags"
+                />
+              </div>
+            )}
+
+            {openControlPanel === "filter" && (
+              <div className="flex min-w-[13rem] flex-col gap-2">
+                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                  Filter
+                </span>
+                <div className="flex flex-col gap-2">
+                  {FILTERS.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setFilter(item)}
+                      className={`btn-base btn-sm justify-start capitalize ${
+                        filter === item ? "theme-toggle-active" : "theme-filter"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {openControlPanel === "clear" && (
+              <div className="flex min-w-[13rem] flex-col gap-2">
+                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                  Clear
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
+                      clearCompleted();
+                    }
+                  }}
+                  disabled={!hasCompletedTasks}
+                  className={`btn-base btn-sm justify-start ${
+                    hasCompletedTasks ? "btn-danger" : "btn-muted"
+                  }`}
+                >
+                  Clear Completed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasTasks && window.confirm("Clear all tasks?")) {
+                      clearAllTasks();
+                    }
+                  }}
+                  disabled={!hasTasks}
+                  className={`btn-base btn-sm justify-start ${
+                    hasTasks ? "btn-danger" : "btn-muted"
+                  }`}
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
+          <button
+            type="button"
+            onClick={() => toggleControlPanel("search")}
+            aria-label="Toggle search panel"
+            className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => toggleControlPanel("filter")}
+            aria-label="Toggle filter panel"
+            className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6h16" />
+              <path d="M7 12h10" />
+              <path d="M10 18h4" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => toggleControlPanel("clear")}
+            aria-label="Toggle clear panel"
+            className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18" />
+              <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
+              <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
+              <path d="M10 10.5v5" />
+              <path d="M14 10.5v5" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="pointer-events-none absolute left-[-99999px] top-0 opacity-0">
@@ -931,14 +1023,11 @@ export default function Home() {
                             </span>
                           )}
 
-                          {Array.isArray(task.tags) && task.tags.map((tag) => (
-                            <span
-                              key={`export-${task.id}-${tag}`}
-                              className="export-capture-badge is-tag"
-                            >
-                              #{tag}
+                          {task.tag && (
+                            <span className="export-capture-badge is-tag">
+                              {task.tag}
                             </span>
-                          ))}
+                          )}
 
                           <span className={`export-capture-badge ${overdue ? "is-overdue" : task.completed ? "is-completed" : "is-date"}`}>
                             {task.dueDate ? `Due ${formatDisplayDate(task.dueDate)}` : "No due date"}

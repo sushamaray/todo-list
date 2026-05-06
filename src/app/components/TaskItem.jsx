@@ -13,24 +13,19 @@ export default function TaskItem({
   toggleTask,
   deleteTask,
   updateTask,
-  formatDisplayDate
+  formatDisplayDate,
+  categoryOptions,
+  tagOptions,
+  expandedTaskId,
+  setExpandedTaskId
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(task.text);
   const [editCategory, setEditCategory] = useState(task.category || "");
-  const [editTags, setEditTags] = useState(Array.isArray(task.tags) ? task.tags.join(", ") : "");
+  const [editTag, setEditTag] = useState(task.tag || "");
   const [editDate, setEditDate] = useState(task.dueDate || "");
   const [editDateActivated, setEditDateActivated] = useState(Boolean(task.dueDate));
-
-  const parseTags = (value) =>
-    Array.from(
-      new Set(
-        value
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      )
-    );
+  const isExpanded = expandedTaskId === task.id;
 
   const activateEditDate = () => {
     setEditDateActivated(true);
@@ -46,8 +41,8 @@ export default function TaskItem({
     updateTask(task.id, {
       text: editText.trim(),
       dueDate: editDate || "",
-      category: editCategory.trim(),
-      tags: parseTags(editTags)
+      category: editCategory,
+      tag: editTag
     });
 
     setIsEditing(false);
@@ -56,10 +51,15 @@ export default function TaskItem({
   const handleCancel = () => {
     setEditText(task.text);
     setEditCategory(task.category || "");
-    setEditTags(Array.isArray(task.tags) ? task.tags.join(", ") : "");
+    setEditTag(task.tag || "");
     setEditDate(task.dueDate || "");
     setEditDateActivated(Boolean(task.dueDate));
     setIsEditing(false);
+  };
+
+  const toggleExpanded = () => {
+    if (isEditing) return;
+    setExpandedTaskId(isExpanded ? null : task.id);
   };
 
   const isOverdue = () => {
@@ -81,13 +81,17 @@ export default function TaskItem({
       : "border-stone-300 bg-transparent hover:-translate-y-0.5 hover:border-stone-500 hover:shadow-[0_20px_36px_rgba(28,25,23,0.12)] dark:border-slate-700 dark:bg-transparent dark:hover:border-slate-500 dark:hover:shadow-[0_20px_36px_rgba(0,0,0,0.24)]";
   return (
     <article
+      onClick={toggleExpanded}
       className={`task-item-card theme-card animate-[fadeIn_0.24s_ease-in] rounded-[1.45rem] border p-4 transition-all duration-300 ${cardClasses}`}
     >
       <div className="task-item-shell flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="task-item-main flex min-w-0 flex-1 items-start gap-3">
           <button
             type="button"
-            onClick={() => toggleTask(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleTask(task.id);
+            }}
             aria-label={
               task.completed
                 ? `Mark ${task.text} as pending`
@@ -112,19 +116,34 @@ export default function TaskItem({
                 className="input-shell min-h-11 font-lexend"
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
               />
-              <input
+              <select
                 className="input-shell min-h-11 font-lexend"
                 value={editCategory}
                 onChange={(e) => setEditCategory(e.target.value)}
-                placeholder="Category (optional)"
-              />
-              <input
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value="">Select category</option>
+                {categoryOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <select
                 className="input-shell min-h-11 font-lexend"
-                value={editTags}
-                onChange={(e) => setEditTags(e.target.value)}
-                placeholder="Tags separated by commas (optional)"
-              />
+                value={editTag}
+                onChange={(e) => setEditTag(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value="">Select tag</option>
+                {tagOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
               <input
                 type={editDateActivated || editDate ? "date" : "text"}
                 inputMode="numeric"
@@ -140,7 +159,9 @@ export default function TaskItem({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p
-                  className={`whitespace-nowrap overflow-hidden text-ellipsis text-[1.02rem] font-alef ${
+                  className={`task-item-text text-[1.02rem] font-alef ${
+                    isExpanded ? "is-expanded" : ""
+                  } ${
                     task.completed ? "text-stone-400 line-through dark:text-slate-400" : "theme-heading"
                   }`}
                 >
@@ -156,19 +177,21 @@ export default function TaskItem({
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {task.category && (
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs text-amber-900 font-lexend dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100">
+                  <span className="task-meta-badge task-meta-badge-category">
                     {task.category}
                   </span>
                 )}
 
-                {Array.isArray(task.tags) && task.tags.map((tag) => (
-                  <span
-                    key={`${task.id}-${tag}`}
-                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-900 font-lexend dark:border-emerald-900/70 dark:bg-emerald-950/50 dark:text-emerald-100"
+                {task.tag && (
+                  <span className={`task-meta-badge ${task.tag === "Urgent"
+                    ? "task-meta-badge-tag-urgent"
+                    : task.tag === "Medium"
+                      ? "task-meta-badge-tag-medium"
+                      : "task-meta-badge-tag-low"}`}
                   >
-                    #{tag}
+                    {task.tag}
                   </span>
-                ))}
+                )}
 
                 {task.dueDate ? (
                   <span
@@ -199,13 +222,19 @@ export default function TaskItem({
           {isEditing ? (
             <>
               <button
-                onClick={handleSave}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSave();
+                }}
                 className="btn-base btn-sm theme-toggle-active"
               >
                 Save
               </button>
               <button
-                onClick={handleCancel}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancel();
+                }}
                 className="btn-base btn-sm theme-filter"
               >
                 Cancel
@@ -213,7 +242,10 @@ export default function TaskItem({
             </>
           ) : (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
               className="btn-base btn-sm theme-filter"
             >
               Edit
@@ -221,7 +253,10 @@ export default function TaskItem({
           )}
 
           <button
-            onClick={() => deleteTask(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteTask(task.id);
+            }}
             className="btn-base btn-sm btn-danger"
             aria-label={`Delete ${task.text}`}
           >
