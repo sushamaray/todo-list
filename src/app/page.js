@@ -14,8 +14,24 @@ const TASKS_EVENT = "tasks-updated";
 const THEME_STORAGE_KEY = "theme-preference";
 const THEME_EVENT = "theme-updated";
 const EMPTY_TASKS = [];
+const FLOATING_PANEL_GAP = 16;
 let cachedTasksRaw = null;
 let cachedTasksSnapshot = EMPTY_TASKS;
+
+function clampFloatingPosition(position, panelSize) {
+  if (typeof window === "undefined") return position;
+
+  return {
+    x: Math.min(
+      Math.max(FLOATING_PANEL_GAP, position.x),
+      Math.max(FLOATING_PANEL_GAP, window.innerWidth - panelSize.width - FLOATING_PANEL_GAP)
+    ),
+    y: Math.min(
+      Math.max(FLOATING_PANEL_GAP, position.y),
+      Math.max(FLOATING_PANEL_GAP, window.innerHeight - panelSize.height - FLOATING_PANEL_GAP)
+    )
+  };
+}
 
 function normalizeTask(task) {
   const legacyTags = Array.isArray(task?.tags)
@@ -206,9 +222,12 @@ export default function Home() {
   const [filter, setFilter] = useState("all");
   const [expandedTaskId, setExpandedTaskId] = useState(null);
   const [openControlPanel, setOpenControlPanel] = useState(null);
+  const [floatingPanelPosition, setFloatingPanelPosition] = useState(null);
+  const [dragState, setDragState] = useState(null);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const taskBoardRef = useRef(null);
   const exportBoardRef = useRef(null);
+  const floatingPanelRef = useRef(null);
   const tasks = useSyncExternalStore(
     subscribeToTasks,
     getStoredTasks,
@@ -230,6 +249,67 @@ export default function Home() {
     document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.dataset.themePreference = themePreference;
   }, [systemTheme, themePreference]);
+
+  useEffect(() => {
+    const updateFloatingPanelPosition = () => {
+      if (!floatingPanelRef.current) return;
+
+      const { width, height } = floatingPanelRef.current.getBoundingClientRect();
+
+      setFloatingPanelPosition((prev) => {
+        const defaultPosition = clampFloatingPosition(
+          {
+            x: window.innerWidth - width - FLOATING_PANEL_GAP,
+            y: (window.innerHeight - height) / 2
+          },
+          { width, height }
+        );
+
+        return prev === null ? defaultPosition : clampFloatingPosition(prev, { width, height });
+      });
+    };
+
+    updateFloatingPanelPosition();
+    window.addEventListener("resize", updateFloatingPanelPosition);
+
+    return () => {
+      window.removeEventListener("resize", updateFloatingPanelPosition);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!dragState) return undefined;
+
+    const handleMouseMove = (event) => {
+      if (!floatingPanelRef.current) return;
+
+      const { width, height } = floatingPanelRef.current.getBoundingClientRect();
+      const nextPosition = clampFloatingPosition(
+        {
+          x: event.clientX - dragState.offsetX,
+          y: event.clientY - dragState.offsetY
+        },
+        { width, height }
+      );
+
+      setFloatingPanelPosition(nextPosition);
+    };
+
+    const handleMouseUp = () => {
+      setDragState(null);
+      document.body.style.userSelect = "";
+    };
+
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragState]);
 
   const activateDateField = () => {
     setDateActivated(true);
@@ -294,6 +374,19 @@ export default function Home() {
 
   const toggleControlPanel = (panelName) => {
     setOpenControlPanel((prev) => (prev === panelName ? null : panelName));
+  };
+
+  const handleFloatingPanelMouseDown = (event) => {
+    if (event.button !== 0) return;
+    if (event.target.closest("button, input")) return;
+    if (!floatingPanelRef.current || !floatingPanelPosition) return;
+
+    const panelBounds = floatingPanelRef.current.getBoundingClientRect();
+
+    setDragState({
+      offsetX: event.clientX - panelBounds.left,
+      offsetY: event.clientY - panelBounds.top
+    });
   };
 
   const getPriority = (task) => {
@@ -832,7 +925,15 @@ export default function Home() {
         </section>
       </div>
 
-      <div className="floating-controls">
+      <div
+        ref={floatingPanelRef}
+        onMouseDown={handleFloatingPanelMouseDown}
+        className={`floating-controls ${dragState ? "is-dragging" : "is-idle"}`}
+        style={floatingPanelPosition ? {
+          left: `${floatingPanelPosition.x}px`,
+          top: `${floatingPanelPosition.y}px`
+        } : undefined}
+      >
         {openControlPanel && (
           <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
             {openControlPanel === "search" && (
