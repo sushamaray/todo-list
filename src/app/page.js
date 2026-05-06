@@ -747,120 +747,122 @@ export default function Home() {
             data-export-hidden="true"
             className="task-board-controls"
           >
-            {openControlPanel && (
-              <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
-                {openControlPanel === "search" && (
-                  <div className="flex min-w-[16rem] flex-col gap-2">
-                    <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                      Search
-                    </span>
-                    <input
-                      className="input-shell min-h-11 font-lexend"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search tasks, categories, or tags"
-                    />
-                  </div>
-                )}
-
-                {openControlPanel === "filter" && (
-                  <div className="flex min-w-[13rem] flex-col gap-2">
-                    <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                      Filter
-                    </span>
-                    <div className="flex flex-col gap-2">
-                      {FILTERS.map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => setFilter(item)}
-                          className={`btn-base btn-sm justify-start capitalize ${
-                            filter === item ? "theme-toggle-active" : "theme-filter"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      ))}
+            <div className="task-board-controls-shell">
+              {openControlPanel && (
+                <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
+                  {openControlPanel === "search" && (
+                    <div className="flex min-w-[16rem] flex-col gap-2">
+                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                        Search
+                      </span>
+                      <input
+                        className="input-shell min-h-11 font-lexend"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search tasks, categories, or tags"
+                      />
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {openControlPanel === "clear" && (
-                  <div className="flex min-w-[13rem] flex-col gap-2">
-                    <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                      Clear
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
-                          clearCompleted();
-                        }
-                      }}
-                      disabled={!hasCompletedTasks}
-                      className={`btn-base btn-sm justify-start ${
-                        hasCompletedTasks ? "btn-danger" : "btn-muted"
-                      }`}
-                    >
-                      Clear Completed
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasTasks && window.confirm("Clear all tasks?")) {
-                          clearAllTasks();
-                        }
-                      }}
-                      disabled={!hasTasks}
-                      className={`btn-base btn-sm justify-start ${
-                        hasTasks ? "btn-danger" : "btn-muted"
-                      }`}
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                )}
+                  {openControlPanel === "filter" && (
+                    <div className="flex min-w-[13rem] flex-col gap-2">
+                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                        Filter
+                      </span>
+                      <div className="flex flex-col gap-2">
+                        {FILTERS.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => setFilter(item)}
+                            className={`btn-base btn-sm justify-start capitalize ${
+                              filter === item ? "theme-toggle-active" : "theme-filter"
+                            }`}
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {openControlPanel === "clear" && (
+                    <div className="flex min-w-[13rem] flex-col gap-2">
+                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                        Clear
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
+                            clearCompleted();
+                          }
+                        }}
+                        disabled={!hasCompletedTasks}
+                        className={`btn-base btn-sm justify-start ${
+                          hasCompletedTasks ? "btn-danger" : "btn-muted"
+                        }`}
+                      >
+                        Clear Completed
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hasTasks && window.confirm("Clear all tasks?")) {
+                            clearAllTasks();
+                          }
+                        }}
+                        disabled={!hasTasks}
+                        className={`btn-base btn-sm justify-start ${
+                          hasTasks ? "btn-danger" : "btn-muted"
+                        }`}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
+                <button
+                  type="button"
+                  onClick={() => toggleControlPanel("search")}
+                  aria-label="Toggle search panel"
+                  className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-3.5-3.5" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleControlPanel("filter")}
+                  aria-label="Toggle filter panel"
+                  className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 6h16" />
+                    <path d="M7 12h10" />
+                    <path d="M10 18h4" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleControlPanel("clear")}
+                  aria-label="Toggle clear panel"
+                  className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
+                    <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
+                    <path d="M10 10.5v5" />
+                    <path d="M14 10.5v5" />
+                  </svg>
+                </button>
               </div>
-            )}
-
-            <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
-              <button
-                type="button"
-                onClick={() => toggleControlPanel("search")}
-                aria-label="Toggle search panel"
-                className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.5-3.5" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleControlPanel("filter")}
-                aria-label="Toggle filter panel"
-                className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 6h16" />
-                  <path d="M7 12h10" />
-                  <path d="M10 18h4" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleControlPanel("clear")}
-                aria-label="Toggle clear panel"
-                className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
-                  <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
-                  <path d="M10 10.5v5" />
-                  <path d="M14 10.5v5" />
-                </svg>
-              </button>
             </div>
           </div>
 
