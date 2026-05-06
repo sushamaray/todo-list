@@ -280,14 +280,14 @@ export default function Home() {
   useEffect(() => {
     if (!dragState) return undefined;
 
-    const handleMouseMove = (event) => {
+    const updateFloatingPanelDrag = (clientX, clientY) => {
       if (!floatingPanelRef.current) return;
 
       const { width, height } = floatingPanelRef.current.getBoundingClientRect();
       const nextPosition = clampFloatingPosition(
         {
-          x: event.clientX - dragState.offsetX,
-          y: event.clientY - dragState.offsetY
+          x: clientX - dragState.offsetX,
+          y: clientY - dragState.offsetY
         },
         { width, height }
       );
@@ -295,19 +295,38 @@ export default function Home() {
       setFloatingPanelPosition(nextPosition);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (event) => {
+      updateFloatingPanelDrag(event.clientX, event.clientY);
+    };
+
+    const handleTouchMove = (event) => {
+      const touch = event.touches[0];
+
+      if (!touch) return;
+
+      event.preventDefault();
+      updateFloatingPanelDrag(touch.clientX, touch.clientY);
+    };
+
+    const stopDragging = () => {
       setDragState(null);
       document.body.style.userSelect = "";
     };
 
     document.body.style.userSelect = "none";
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mouseup", stopDragging);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", stopDragging);
+    window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", stopDragging);
+      window.removeEventListener("touchcancel", stopDragging);
     };
   }, [dragState]);
 
@@ -376,17 +395,33 @@ export default function Home() {
     setOpenControlPanel((prev) => (prev === panelName ? null : panelName));
   };
 
-  const handleFloatingPanelMouseDown = (event) => {
-    if (event.button !== 0) return;
-    if (event.target.closest("button, input")) return;
+  const startFloatingPanelDrag = (clientX, clientY) => {
     if (!floatingPanelRef.current || !floatingPanelPosition) return;
 
     const panelBounds = floatingPanelRef.current.getBoundingClientRect();
 
     setDragState({
-      offsetX: event.clientX - panelBounds.left,
-      offsetY: event.clientY - panelBounds.top
+      offsetX: clientX - panelBounds.left,
+      offsetY: clientY - panelBounds.top
     });
+  };
+
+  const handleFloatingPanelMouseDown = (event) => {
+    if (event.button !== 0) return;
+    if (event.target.closest("button, input")) return;
+
+    startFloatingPanelDrag(event.clientX, event.clientY);
+  };
+
+  const handleFloatingPanelTouchStart = (event) => {
+    if (event.target.closest("button, input")) return;
+
+    const touch = event.touches[0];
+
+    if (!touch) return;
+
+    event.preventDefault();
+    startFloatingPanelDrag(touch.clientX, touch.clientY);
   };
 
   const getPriority = (task) => {
@@ -928,6 +963,7 @@ export default function Home() {
       <div
         ref={floatingPanelRef}
         onMouseDown={handleFloatingPanelMouseDown}
+        onTouchStart={handleFloatingPanelTouchStart}
         className={`floating-controls ${dragState ? "is-dragging" : "is-idle"}`}
         style={floatingPanelPosition ? {
           left: `${floatingPanelPosition.x}px`,

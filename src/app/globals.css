@@ -585,6 +585,7 @@ select.input-shell {
   gap: 0.75rem;
   width: max-content;
   cursor: grab;
+  touch-action: none;
 }
 
 .floating-controls.is-dragging {
