@@ -743,19 +743,6 @@ export default function Home() {
         </section>
 
         <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:p-7">
-          <div className="theme-card rounded-[1.7rem] border p-4 sm:p-5">
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-                <span className="task-meta-badge task-meta-badge-category">
-                  {filter[0].toUpperCase() + filter.slice(1)}
-                </span>
-                {hasActiveSearch && (
-                  <span className="task-meta-badge task-meta-badge-neutral">
-                    Search: {searchQuery}
-                  </span>
-                )}
-            </div>
-          </div>
-
           <div
             ref={taskBoardRef}
             className="theme-task-board mt-5 rounded-[1.7rem] border p-4 sm:p-5"
