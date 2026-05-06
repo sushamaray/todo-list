@@ -742,7 +742,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="glass-panel animate-[slideUp_0.72s_ease-out] relative min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:pr-24 lg:pt-7 xl:pr-28">
+        <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:p-7">
           <div
             data-export-hidden="true"
             className="task-board-controls"
@@ -866,7 +866,7 @@ export default function Home() {
 
           <div
             ref={taskBoardRef}
-            className="theme-task-board mt-5 rounded-[1.7rem] border p-4 sm:p-5 lg:mt-0"
+            className="theme-task-board rounded-[1.7rem] border p-4 sm:p-5"
           >
             <div className="export-board-header flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="export-board-heading">
