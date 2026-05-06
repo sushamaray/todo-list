@@ -15,6 +15,7 @@ const THEME_STORAGE_KEY = "theme-preference";
 const THEME_EVENT = "theme-updated";
 const EMPTY_TASKS = [];
 const FLOATING_PANEL_GAP = 16;
+const TOUCH_DRAG_THRESHOLD = 10;
 let cachedTasksRaw = null;
 let cachedTasksSnapshot = EMPTY_TASKS;
 
@@ -224,10 +225,12 @@ export default function Home() {
   const [openControlPanel, setOpenControlPanel] = useState(null);
   const [floatingPanelPosition, setFloatingPanelPosition] = useState(null);
   const [dragState, setDragState] = useState(null);
+  const [touchDragIntent, setTouchDragIntent] = useState(null);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const taskBoardRef = useRef(null);
   const exportBoardRef = useRef(null);
   const floatingPanelRef = useRef(null);
+  const suppressFloatingPanelClickRef = useRef(false);
   const tasks = useSyncExternalStore(
     subscribeToTasks,
     getStoredTasks,
@@ -278,7 +281,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!dragState) return undefined;
+    if (!dragState && !touchDragIntent) return undefined;
 
     const updateFloatingPanelDrag = (clientX, clientY) => {
       if (!floatingPanelRef.current) return;
@@ -304,16 +307,44 @@ export default function Home() {
 
       if (!touch) return;
 
+      if (!dragState && touchDragIntent) {
+        const deltaX = touch.clientX - touchDragIntent.startX;
+        const deltaY = touch.clientY - touchDragIntent.startY;
+
+        if (Math.hypot(deltaX, deltaY) < TOUCH_DRAG_THRESHOLD) {
+          return;
+        }
+
+        event.preventDefault();
+        setDragState({
+          offsetX: touchDragIntent.offsetX,
+          offsetY: touchDragIntent.offsetY
+        });
+        setTouchDragIntent(null);
+        updateFloatingPanelDrag(touch.clientX, touch.clientY);
+        return;
+      }
+
+      if (!dragState) return;
+
       event.preventDefault();
       updateFloatingPanelDrag(touch.clientX, touch.clientY);
     };
 
     const stopDragging = () => {
+      if (dragState) {
+        suppressFloatingPanelClickRef.current = true;
+      }
+
       setDragState(null);
+      setTouchDragIntent(null);
       document.body.style.userSelect = "";
     };
 
-    document.body.style.userSelect = "none";
+    if (dragState) {
+      document.body.style.userSelect = "none";
+    }
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDragging);
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
@@ -328,7 +359,7 @@ export default function Home() {
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
-  }, [dragState]);
+  }, [dragState, touchDragIntent]);
 
   const activateDateField = () => {
     setDateActivated(true);
@@ -414,14 +445,29 @@ export default function Home() {
   };
 
   const handleFloatingPanelTouchStart = (event) => {
-    if (event.target.closest("button, input")) return;
+    if (!floatingPanelRef.current || !floatingPanelPosition) return;
+    if (!event.target.closest(".floating-controls-rail")) return;
 
     const touch = event.touches[0];
 
     if (!touch) return;
 
+    const panelBounds = floatingPanelRef.current.getBoundingClientRect();
+
+    setTouchDragIntent({
+      startX: touch.clientX,
+      startY: touch.clientY,
+      offsetX: touch.clientX - panelBounds.left,
+      offsetY: touch.clientY - panelBounds.top
+    });
+  };
+
+  const handleFloatingPanelClickCapture = (event) => {
+    if (!suppressFloatingPanelClickRef.current) return;
+
+    suppressFloatingPanelClickRef.current = false;
     event.preventDefault();
-    startFloatingPanelDrag(touch.clientX, touch.clientY);
+    event.stopPropagation();
   };
 
   const getPriority = (task) => {
@@ -964,6 +1010,7 @@ export default function Home() {
         ref={floatingPanelRef}
         onMouseDown={handleFloatingPanelMouseDown}
         onTouchStart={handleFloatingPanelTouchStart}
+        onClickCapture={handleFloatingPanelClickCapture}
         className={`floating-controls ${dragState ? "is-dragging" : "is-idle"}`}
         style={floatingPanelPosition ? {
           left: `${floatingPanelPosition.x}px`,
