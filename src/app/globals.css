@@ -584,6 +584,7 @@ select.input-shell {
   align-items: flex-end;
   gap: 0.75rem;
   width: 100%;
+  margin-bottom: 1rem;
 }
 
 .floating-controls-popover {
@@ -616,6 +617,21 @@ select.input-shell {
   .floating-controls-popover {
     width: 100%;
     max-width: min(18rem, calc(100vw - 4rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  .task-board-controls {
+    position: absolute;
+    top: 1.75rem;
+    right: 1.25rem;
+    z-index: 10;
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .floating-controls-popover {
+    max-width: 18rem;
   }
 }
 
