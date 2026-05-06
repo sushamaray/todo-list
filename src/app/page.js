@@ -744,17 +744,7 @@ export default function Home() {
 
         <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:p-7">
           <div className="theme-card rounded-[1.7rem] border p-4 sm:p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                  View Controls
-                </p>
-                <p className="theme-heading mt-1 text-lg font-space font-bold">
-                  Search, filter, and clear from the floating panel
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 sm:justify-end">
                 <span className="task-meta-badge task-meta-badge-category">
                   {filter[0].toUpperCase() + filter.slice(1)}
                 </span>
@@ -763,7 +753,6 @@ export default function Home() {
                     Search: {searchQuery}
                   </span>
                 )}
-              </div>
             </div>
           </div>
 
