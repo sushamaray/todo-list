@@ -14,25 +14,8 @@ const TASKS_EVENT = "tasks-updated";
 const THEME_STORAGE_KEY = "theme-preference";
 const THEME_EVENT = "theme-updated";
 const EMPTY_TASKS = [];
-const FLOATING_PANEL_GAP = 16;
-const TOUCH_DRAG_THRESHOLD = 10;
 let cachedTasksRaw = null;
 let cachedTasksSnapshot = EMPTY_TASKS;
-
-function clampFloatingPosition(position, panelSize) {
-  if (typeof window === "undefined") return position;
-
-  return {
-    x: Math.min(
-      Math.max(FLOATING_PANEL_GAP, position.x),
-      Math.max(FLOATING_PANEL_GAP, window.innerWidth - panelSize.width - FLOATING_PANEL_GAP)
-    ),
-    y: Math.min(
-      Math.max(FLOATING_PANEL_GAP, position.y),
-      Math.max(FLOATING_PANEL_GAP, window.innerHeight - panelSize.height - FLOATING_PANEL_GAP)
-    )
-  };
-}
 
 function normalizeTask(task) {
   const legacyTags = Array.isArray(task?.tags)
@@ -223,14 +206,9 @@ export default function Home() {
   const [filter, setFilter] = useState("all");
   const [expandedTaskId, setExpandedTaskId] = useState(null);
   const [openControlPanel, setOpenControlPanel] = useState(null);
-  const [floatingPanelPosition, setFloatingPanelPosition] = useState(null);
-  const [dragState, setDragState] = useState(null);
-  const [touchDragIntent, setTouchDragIntent] = useState(null);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const taskBoardRef = useRef(null);
   const exportBoardRef = useRef(null);
-  const floatingPanelRef = useRef(null);
-  const suppressFloatingPanelClickRef = useRef(false);
   const tasks = useSyncExternalStore(
     subscribeToTasks,
     getStoredTasks,
@@ -252,114 +230,6 @@ export default function Home() {
     document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.dataset.themePreference = themePreference;
   }, [systemTheme, themePreference]);
-
-  useEffect(() => {
-    const updateFloatingPanelPosition = () => {
-      if (!floatingPanelRef.current) return;
-
-      const { width, height } = floatingPanelRef.current.getBoundingClientRect();
-
-      setFloatingPanelPosition((prev) => {
-        const defaultPosition = clampFloatingPosition(
-          {
-            x: window.innerWidth - width - FLOATING_PANEL_GAP,
-            y: (window.innerHeight - height) / 2
-          },
-          { width, height }
-        );
-
-        return prev === null ? defaultPosition : clampFloatingPosition(prev, { width, height });
-      });
-    };
-
-    updateFloatingPanelPosition();
-    window.addEventListener("resize", updateFloatingPanelPosition);
-
-    return () => {
-      window.removeEventListener("resize", updateFloatingPanelPosition);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!dragState && !touchDragIntent) return undefined;
-
-    const updateFloatingPanelDrag = (clientX, clientY) => {
-      if (!floatingPanelRef.current) return;
-
-      const { width, height } = floatingPanelRef.current.getBoundingClientRect();
-      const nextPosition = clampFloatingPosition(
-        {
-          x: clientX - dragState.offsetX,
-          y: clientY - dragState.offsetY
-        },
-        { width, height }
-      );
-
-      setFloatingPanelPosition(nextPosition);
-    };
-
-    const handleMouseMove = (event) => {
-      updateFloatingPanelDrag(event.clientX, event.clientY);
-    };
-
-    const handleTouchMove = (event) => {
-      const touch = event.touches[0];
-
-      if (!touch) return;
-
-      if (!dragState && touchDragIntent) {
-        const deltaX = touch.clientX - touchDragIntent.startX;
-        const deltaY = touch.clientY - touchDragIntent.startY;
-
-        if (Math.hypot(deltaX, deltaY) < TOUCH_DRAG_THRESHOLD) {
-          return;
-        }
-
-        event.preventDefault();
-        setDragState({
-          offsetX: touchDragIntent.offsetX,
-          offsetY: touchDragIntent.offsetY
-        });
-        setTouchDragIntent(null);
-        updateFloatingPanelDrag(touch.clientX, touch.clientY);
-        return;
-      }
-
-      if (!dragState) return;
-
-      event.preventDefault();
-      updateFloatingPanelDrag(touch.clientX, touch.clientY);
-    };
-
-    const stopDragging = () => {
-      if (dragState) {
-        suppressFloatingPanelClickRef.current = true;
-      }
-
-      setDragState(null);
-      setTouchDragIntent(null);
-      document.body.style.userSelect = "";
-    };
-
-    if (dragState) {
-      document.body.style.userSelect = "none";
-    }
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", stopDragging);
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", stopDragging);
-    window.addEventListener("touchcancel", stopDragging);
-
-    return () => {
-      document.body.style.userSelect = "";
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", stopDragging);
-      window.removeEventListener("touchcancel", stopDragging);
-    };
-  }, [dragState, touchDragIntent]);
 
   const activateDateField = () => {
     setDateActivated(true);
@@ -424,50 +294,6 @@ export default function Home() {
 
   const toggleControlPanel = (panelName) => {
     setOpenControlPanel((prev) => (prev === panelName ? null : panelName));
-  };
-
-  const startFloatingPanelDrag = (clientX, clientY) => {
-    if (!floatingPanelRef.current || !floatingPanelPosition) return;
-
-    const panelBounds = floatingPanelRef.current.getBoundingClientRect();
-
-    setDragState({
-      offsetX: clientX - panelBounds.left,
-      offsetY: clientY - panelBounds.top
-    });
-  };
-
-  const handleFloatingPanelMouseDown = (event) => {
-    if (event.button !== 0) return;
-    if (event.target.closest("button, input")) return;
-
-    startFloatingPanelDrag(event.clientX, event.clientY);
-  };
-
-  const handleFloatingPanelTouchStart = (event) => {
-    if (!floatingPanelRef.current || !floatingPanelPosition) return;
-    if (!event.target.closest(".floating-controls-rail")) return;
-
-    const touch = event.touches[0];
-
-    if (!touch) return;
-
-    const panelBounds = floatingPanelRef.current.getBoundingClientRect();
-
-    setTouchDragIntent({
-      startX: touch.clientX,
-      startY: touch.clientY,
-      offsetX: touch.clientX - panelBounds.left,
-      offsetY: touch.clientY - panelBounds.top
-    });
-  };
-
-  const handleFloatingPanelClickCapture = (event) => {
-    if (!suppressFloatingPanelClickRef.current) return;
-
-    suppressFloatingPanelClickRef.current = false;
-    event.preventDefault();
-    event.stopPropagation();
   };
 
   const getPriority = (task) => {
@@ -938,6 +764,124 @@ export default function Home() {
                 data-export-hidden="true"
                 className="flex flex-col items-start gap-2 sm:items-end"
               >
+                <div className="task-board-controls">
+                  {openControlPanel && (
+                    <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
+                      {openControlPanel === "search" && (
+                        <div className="flex min-w-[16rem] flex-col gap-2">
+                          <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                            Search
+                          </span>
+                          <input
+                            className="input-shell min-h-11 font-lexend"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search tasks, categories, or tags"
+                          />
+                        </div>
+                      )}
+
+                      {openControlPanel === "filter" && (
+                        <div className="flex min-w-[13rem] flex-col gap-2">
+                          <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                            Filter
+                          </span>
+                          <div className="flex flex-col gap-2">
+                            {FILTERS.map((item) => (
+                              <button
+                                key={item}
+                                type="button"
+                                onClick={() => setFilter(item)}
+                                className={`btn-base btn-sm justify-start capitalize ${
+                                  filter === item ? "theme-toggle-active" : "theme-filter"
+                                }`}
+                              >
+                                {item}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {openControlPanel === "clear" && (
+                        <div className="flex min-w-[13rem] flex-col gap-2">
+                          <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
+                            Clear
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
+                                clearCompleted();
+                              }
+                            }}
+                            disabled={!hasCompletedTasks}
+                            className={`btn-base btn-sm justify-start ${
+                              hasCompletedTasks ? "btn-danger" : "btn-muted"
+                            }`}
+                          >
+                            Clear Completed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (hasTasks && window.confirm("Clear all tasks?")) {
+                                clearAllTasks();
+                              }
+                            }}
+                            disabled={!hasTasks}
+                            className={`btn-base btn-sm justify-start ${
+                              hasTasks ? "btn-danger" : "btn-muted"
+                            }`}
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleControlPanel("search")}
+                      aria-label="Toggle search panel"
+                      className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleControlPanel("filter")}
+                      aria-label="Toggle filter panel"
+                      className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6h16" />
+                        <path d="M7 12h10" />
+                        <path d="M10 18h4" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleControlPanel("clear")}
+                      aria-label="Toggle clear panel"
+                      className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
+                        <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
+                        <path d="M10 10.5v5" />
+                        <path d="M14 10.5v5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
                 <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
                   Backup
                 </span>
@@ -1004,134 +948,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </div>
-
-      <div
-        ref={floatingPanelRef}
-        onMouseDown={handleFloatingPanelMouseDown}
-        onTouchStart={handleFloatingPanelTouchStart}
-        onClickCapture={handleFloatingPanelClickCapture}
-        className={`floating-controls ${dragState ? "is-dragging" : "is-idle"}`}
-        style={floatingPanelPosition ? {
-          left: `${floatingPanelPosition.x}px`,
-          top: `${floatingPanelPosition.y}px`
-        } : undefined}
-      >
-        {openControlPanel && (
-          <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
-            {openControlPanel === "search" && (
-              <div className="flex min-w-[16rem] flex-col gap-2">
-                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                  Search
-                </span>
-                <input
-                  className="input-shell min-h-11 font-lexend"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search tasks, categories, or tags"
-                />
-              </div>
-            )}
-
-            {openControlPanel === "filter" && (
-              <div className="flex min-w-[13rem] flex-col gap-2">
-                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                  Filter
-                </span>
-                <div className="flex flex-col gap-2">
-                  {FILTERS.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setFilter(item)}
-                      className={`btn-base btn-sm justify-start capitalize ${
-                        filter === item ? "theme-toggle-active" : "theme-filter"
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {openControlPanel === "clear" && (
-              <div className="flex min-w-[13rem] flex-col gap-2">
-                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                  Clear
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
-                      clearCompleted();
-                    }
-                  }}
-                  disabled={!hasCompletedTasks}
-                  className={`btn-base btn-sm justify-start ${
-                    hasCompletedTasks ? "btn-danger" : "btn-muted"
-                  }`}
-                >
-                  Clear Completed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasTasks && window.confirm("Clear all tasks?")) {
-                      clearAllTasks();
-                    }
-                  }}
-                  disabled={!hasTasks}
-                  className={`btn-base btn-sm justify-start ${
-                    hasTasks ? "btn-danger" : "btn-muted"
-                  }`}
-                >
-                  Clear All
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
-          <button
-            type="button"
-            onClick={() => toggleControlPanel("search")}
-            aria-label="Toggle search panel"
-            className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => toggleControlPanel("filter")}
-            aria-label="Toggle filter panel"
-            className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 6h16" />
-              <path d="M7 12h10" />
-              <path d="M10 18h4" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => toggleControlPanel("clear")}
-            aria-label="Toggle clear panel"
-            className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18" />
-              <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
-              <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
-              <path d="M10 10.5v5" />
-              <path d="M14 10.5v5" />
-            </svg>
-          </button>
-        </div>
       </div>
 
       <div className="pointer-events-none absolute left-[-99999px] top-0 opacity-0">
