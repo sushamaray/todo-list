@@ -57,6 +57,7 @@ export default function BottomNav({ activeSection, setActiveSection }) {
             >
               <span aria-hidden="true" className="bottom-nav-active-ring" />
               <span className="bottom-nav-icon">{item.icon}</span>
+              <span className="bottom-nav-label">{item.label}</span>
             </button>
           );
         })}

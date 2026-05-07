@@ -217,7 +217,7 @@ export default function TaskItem({
 
         <div
           data-export-hidden="true"
-          className="flex flex-wrap items-center gap-2 lg:justify-end"
+          className="task-item-actions flex flex-wrap items-center gap-2 lg:justify-end"
         >
           {isEditing ? (
             <>

@@ -255,6 +255,28 @@ select.input-shell {
     0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+:root[data-theme="dark"] .theme-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 38px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="dark"] .home-status-progress {
+  background:
+    linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(51, 65, 85, 0.92)),
+    rgba(15, 23, 42, 0.92);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(71, 85, 105, 0.5);
+}
+
+:root[data-theme="dark"] .home-status-progress-fill {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 55%, #22c55e 100%);
+  box-shadow:
+    0 0 0 1px rgba(167, 243, 208, 0.14),
+    0 10px 22px rgba(16, 185, 129, 0.32);
+}
+
 .theme-soft-card {
   border-color: var(--soft-card-border);
   background: var(--soft-card-bg);
@@ -269,6 +291,43 @@ select.input-shell {
   justify-content: center;
   text-align: left;
   overflow: hidden;
+}
+
+.home-status-card {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 46rem);
+}
+
+.home-status-layout {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+.home-status-copy {
+  max-width: 28rem;
+}
+
+.home-status-badge {
+  min-height: 7.9rem;
+}
+
+.home-status-progress {
+  background:
+    linear-gradient(180deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.3)),
+    rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 1px 2px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.home-status-progress-fill {
+  min-width: 0.2rem;
+  background: linear-gradient(90deg, #6ee7b7 0%, #10b981 48%, #047857 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 8px 18px rgba(5, 150, 105, 0.28);
 }
 
 .theme-empty {
@@ -593,6 +652,14 @@ select.input-shell {
   max-width: min(100%, 18rem);
 }
 
+.task-date-input-shell {
+  position: relative;
+}
+
+.task-date-input {
+  padding-right: 4rem;
+}
+
 .floating-controls-popover {
   min-width: 0;
   width: 100%;
@@ -620,6 +687,11 @@ select.input-shell {
 
 .section-transition {
   animation: sectionFade 320ms ease;
+}
+
+.home-section-grid {
+  display: grid;
+  gap: 1.25rem;
 }
 
 .todo-section-grid {
@@ -655,18 +727,22 @@ select.input-shell {
 }
 
 :root[data-theme="dark"] .bottom-nav {
-  border-color: rgba(71, 85, 105, 0.65);
-  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(100, 116, 139, 0.68);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.97), rgba(17, 24, 39, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 40px rgba(2, 6, 23, 0.5);
 }
 
 .bottom-nav-item {
   position: relative;
   display: inline-flex;
   height: 3.5rem;
-  width: 2rem;
   flex: 1 1 0;
   align-items: center;
   justify-content: center;
+  gap: 0.55rem;
   border: 0;
   border-radius: 9999px;
   background: transparent;
@@ -692,6 +768,11 @@ select.input-shell {
   color: #e5e7eb;
 }
 
+:root[data-theme="dark"] .bottom-nav-item.is-active {
+  color: #f8fafc;
+  filter: drop-shadow(0 12px 22px rgba(15, 23, 42, 0.46));
+}
+
 .bottom-nav-active-ring {
   position: absolute;
   inset: 0.1rem;
@@ -711,7 +792,13 @@ select.input-shell {
 }
 
 :root[data-theme="dark"] .bottom-nav-item.is-active .bottom-nav-active-ring {
-  background: linear-gradient(135deg, #f5f5f4, #d6d3d1);
+  background:
+    linear-gradient(135deg, rgba(248, 250, 252, 0.18), rgba(148, 163, 184, 0.2)),
+    linear-gradient(135deg, #1e293b, #334155);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 24px rgba(2, 6, 23, 0.46),
+    0 0 0 1px rgba(148, 163, 184, 0.22);
 }
 
 .bottom-nav-icon {
@@ -724,6 +811,11 @@ select.input-shell {
 
 .bottom-nav-label {
   display: none;
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-lexend);
+  font-size: 0.78rem;
+  line-height: 1;
 }
 
 .routine-grid {
@@ -900,7 +992,7 @@ select.input-shell {
 
 .routine-list {
   display: flex;
-  max-height: 13.75rem;
+  max-height: 18rem;
   flex-direction: column;
   gap: 0.75rem;
   overflow-y: auto;
@@ -993,6 +1085,17 @@ select.input-shell {
 }
 
 @media (min-width: 768px) {
+  .home-status-layout {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1.1rem;
+  }
+
+  .home-status-badge {
+    align-self: stretch;
+    justify-self: end;
+    min-width: 7.6rem;
+  }
+
   .routine-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1005,8 +1108,61 @@ select.input-shell {
 
 @media (min-width: 1024px) {
   .todo-section-grid {
-    grid-template-columns: minmax(21rem, 30rem) minmax(0, 1fr);
+    grid-template-columns: minmax(22rem, 28rem) minmax(0, 1fr);
     gap: 1.5rem;
+    align-items: start;
+  }
+
+  .todo-capture-panel {
+    position: sticky;
+    top: 7rem;
+  }
+
+  .task-board-controls {
+    justify-content: flex-start;
+  }
+
+  .task-board-controls-shell {
+    width: 100%;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  .floating-controls-rail {
+    justify-content: flex-start;
+    width: fit-content;
+  }
+
+  .floating-controls-popover {
+    width: min(100%, 26rem);
+    max-width: none;
+  }
+
+  .bottom-nav-shell {
+    padding: 0 1.5rem;
+    justify-content: center;
+  }
+
+  .bottom-nav {
+    width: auto;
+    min-width: 36rem;
+    gap: 0.55rem;
+    padding: 0.55rem;
+    border-radius: 1.45rem;
+  }
+
+  .bottom-nav-item {
+    min-width: 10.5rem;
+    padding: 0 1rem;
+    justify-content: flex-start;
+  }
+
+  .bottom-nav-label {
+    display: inline;
+  }
+
+  .routine-list {
+    max-height: 26rem;
   }
 
   .routine-grid {
@@ -1015,6 +1171,21 @@ select.input-shell {
 }
 
 @media (min-width: 1280px) {
+  .todo-section-grid {
+    grid-template-columns: minmax(24rem, 30rem) minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .task-item-actions {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 7rem;
+  }
+
+  .task-item-actions .btn-base {
+    width: 100%;
+  }
+
   .routine-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

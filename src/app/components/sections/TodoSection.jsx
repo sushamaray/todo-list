@@ -42,7 +42,7 @@ export default function TodoSection({
 }) {
   return (
     <div className="todo-section-grid">
-      <section className="glass-panel animate-[slideUp_0.6s_ease-out] rounded-[2rem] p-4 sm:p-6 lg:p-7">
+      <section className="glass-panel todo-capture-panel animate-[slideUp_0.6s_ease-out] rounded-[2rem] p-4 sm:p-6 lg:p-7">
         <div>
           <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
             Quick Capture
@@ -126,32 +126,34 @@ export default function TodoSection({
                 </label>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                 <label className="flex flex-col gap-2">
                   <span className="theme-copy-muted block min-h-10 text-xs uppercase tracking-[0.22em] font-lexend">
                     Due Date
                     <br />
                     (Optional)
                   </span>
-                  <input
-                    type={dateActivated || dueDate ? "date" : "text"}
-                    inputMode="numeric"
-                    className={`input-shell font-lexend tabular-nums ${dueDate ? "theme-heading" : "text-stone-400 dark:text-slate-400"}`}
-                    value={dueDate}
-                    placeholder="dd/mm/yyyy"
-                    onFocus={activateDateField}
-                    onClick={activateDateField}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isInputEmpty) addTask();
-                    }}
-                  />
+                  <div className="task-date-input-shell">
+                    <input
+                      type={dateActivated || dueDate ? "date" : "text"}
+                      inputMode="numeric"
+                      className={`input-shell task-date-input font-lexend tabular-nums ${dueDate ? "theme-heading" : "text-stone-400 dark:text-slate-400"}`}
+                      value={dueDate}
+                      placeholder="dd/mm/yyyy"
+                      onFocus={activateDateField}
+                      onClick={activateDateField}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !isInputEmpty) addTask();
+                      }}
+                    />
+                  </div>
                 </label>
 
                 <button
                   onClick={addTask}
                   disabled={isInputEmpty}
-                  className={`btn-base btn-lg btn-pill sm:min-w-40 ${
+                  className={`btn-base btn-lg btn-pill w-full xl:min-w-40 xl:w-auto ${
                     isInputEmpty
                       ? "btn-muted"
                       : "theme-cta"
@@ -227,7 +229,7 @@ export default function TodoSection({
             {openControlPanel && (
               <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
                 {openControlPanel === "search" && (
-                  <div className="flex min-w-[16rem] flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
                       Search
                     </span>
@@ -241,7 +243,7 @@ export default function TodoSection({
                 )}
 
                 {openControlPanel === "filter" && (
-                  <div className="flex min-w-[13rem] flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
                       Filter
                     </span>
@@ -263,7 +265,7 @@ export default function TodoSection({
                 )}
 
                 {openControlPanel === "clear" && (
-                  <div className="flex min-w-[13rem] flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
                       Clear
                     </span>

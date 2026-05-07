@@ -504,14 +504,14 @@ export default function Home() {
           : `${pendingCount} task${pendingCount === 1 ? "" : "s"} still in motion.`;
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-3 py-4 pb-28 sm:px-5 sm:py-6 sm:pb-32 lg:px-8 lg:pb-36">
+    <main className="relative min-h-screen overflow-hidden px-3 py-4 pb-28 sm:px-5 sm:py-6 sm:pb-32 lg:px-8 lg:pt-28 lg:pb-12">
       <div className="pointer-events-none absolute inset-0">
         <div className="theme-orb-left absolute left-[-8rem] top-[-5rem] h-56 w-56 rounded-full blur-3xl animate-[floatPanel_18s_ease-in-out_infinite]" />
         <div className="theme-orb-right absolute right-[-6rem] top-20 h-64 w-64 rounded-full blur-3xl animate-[floatPanel_22s_ease-in-out_infinite_reverse]" />
         <div className="theme-orb-bottom absolute bottom-[-7rem] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-3xl animate-[pulseGlow_10s_ease-in-out_infinite]" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-7xl">
+      <div className="relative mx-auto w-full max-w-[90rem]">
         <div key={activeSection} className="section-transition">
           {activeSection === "home" && (
             <HomeSection

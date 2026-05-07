@@ -72,7 +72,7 @@ export default function RoutineDetailView({
                   if (e.key === "Enter") handleAdd();
                 }}
               />
-              <button type="button" onClick={handleAdd} className="btn-base btn-md btn-pill theme-cta justify-center">
+              <button type="button" onClick={handleAdd} className="btn-base btn-md btn-pill theme-cta w-full justify-center">
                 Add Entry
               </button>
             </div>

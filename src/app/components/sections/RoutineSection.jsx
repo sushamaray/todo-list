@@ -122,7 +122,7 @@ export default function RoutineSection() {
             </h2>
           </div>
 
-          <p className="theme-copy mt-1 max-w-md text-[15px] leading-7 font-alef">
+          <p className="theme-copy mt-3 max-w-md text-[15px] leading-7 font-alef">
             Open a day, shape its flow, and turn scattered plans into a steadier weekly rhythm.
           </p>
 
