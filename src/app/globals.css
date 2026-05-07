@@ -894,6 +894,10 @@ select.input-shell {
   padding-right: 2.4rem;
 }
 
+.routine-time-period-select {
+  font-size: 0.9rem;
+}
+
 .routine-list {
   display: flex;
   max-height: 13.75rem;

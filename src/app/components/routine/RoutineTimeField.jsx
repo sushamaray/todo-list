@@ -156,7 +156,7 @@ export default function RoutineTimeField({
             <select
               value={pickerState.meridiem}
               onChange={(e) => applyPickerValue({ ...pickerState, meridiem: e.target.value })}
-              className="input-shell routine-time-select font-lexend"
+              className="input-shell routine-time-select routine-time-period-select font-lexend"
               aria-label="Select AM or PM"
             >
               {MERIDIEM_OPTIONS.map((period) => (
