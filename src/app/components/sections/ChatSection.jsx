@@ -104,9 +104,9 @@ export default function ChatSection() {
         <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
           AI Chat
         </span>
-        <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+        <h2 className="mt-6 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
           <span className="theme-heading">Ask</span>{" "}
-          <span className="theme-subheading">Clearly</span>
+          <span className="theme-subheading">Assistent</span>
         </h2>
       </div>
 

@@ -47,7 +47,7 @@ export default function TodoSection({
           <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
             Quick Capture
           </span>
-          <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+          <h2 className="mt-6 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
             <span className="theme-heading">Plan</span>{" "}
             <span className="theme-subheading">Fast</span>
           </h2>
@@ -170,7 +170,7 @@ export default function TodoSection({
           <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
             Task Board
           </span>
-          <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+          <h2 className="mt-6 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
             <span className="theme-heading">See</span>{" "}
             <span className="theme-subheading">Flow</span>
           </h2>

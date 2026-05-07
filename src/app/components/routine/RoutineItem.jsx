@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import RoutineTimeField from "./RoutineTimeField";
 
 export default function RoutineItem({ routine, onDelete, onSave }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -28,10 +29,10 @@ export default function RoutineItem({ routine, onDelete, onSave }) {
     <article className="routine-item">
       {isEditing ? (
         <div className="flex flex-col gap-2">
-          <input
+          <RoutineTimeField
+            id={`routine-time-edit-${routine.id}`}
             value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="input-shell routine-input font-lexend"
+            onChange={setTime}
             placeholder="6:00 AM"
           />
           <input

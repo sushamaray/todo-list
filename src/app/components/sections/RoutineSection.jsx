@@ -116,13 +116,13 @@ export default function RoutineSection() {
             <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
               Weekly Routine
             </span>
-            <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+            <h2 className="mt-6 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
               <span className="theme-heading">Build</span>{" "}
               <span className="theme-subheading">Rhythm</span>
             </h2>
           </div>
 
-          <p className="theme-copy mt-3 max-w-md text-[15px] leading-7 font-alef">
+          <p className="theme-copy mt-1 max-w-md text-[15px] leading-7 font-alef">
             Open a day, shape its flow, and turn scattered plans into a steadier weekly rhythm.
           </p>
 

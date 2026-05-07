@@ -80,13 +80,13 @@ export default function HomeSection({
             )}
           </div>
         </div>
-        <h1 className="mt-2 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+        <h1 className="mt-1 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
           <span className="theme-heading">To-Do</span>{" "}
           <span className="theme-subheading">List</span>
         </h1>
       </div>
 
-      <p className="theme-copy mt-3 max-w-sm text-[15px] leading-7 font-alef">
+      <p className="theme-copy mt-2 max-w-sm text-[15px] leading-7 font-alef">
         A calmer task board with clearer priorities, softer motion, and just enough structure to keep the day moving.
       </p>
 

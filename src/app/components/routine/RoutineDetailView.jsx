@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import RoutineItem from "./RoutineItem";
+import RoutineTimeField from "./RoutineTimeField";
 
 export default function RoutineDetailView({
   dayEntry,
@@ -56,10 +57,10 @@ export default function RoutineDetailView({
             </p>
 
             <div className="mt-4 flex flex-col gap-2">
-              <input
+              <RoutineTimeField
+                id={`routine-time-${dayEntry.day}`}
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="input-shell routine-input font-lexend"
+                onChange={setTime}
                 placeholder="6:00 AM"
               />
               <input
