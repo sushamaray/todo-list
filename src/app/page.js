@@ -2,7 +2,11 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toJpeg, toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
-import TaskItem from "./components/TaskItem";
+import BottomNav from "./components/BottomNav";
+import ChatSection from "./components/sections/ChatSection";
+import HomeSection from "./components/sections/HomeSection";
+import RoutineSection from "./components/sections/RoutineSection";
+import TodoSection from "./components/sections/TodoSection";
 
 const MAX_EXPORT_DIMENSION = 16_000;
 const FILTERS = ["all", "pending", "completed"];
@@ -197,6 +201,7 @@ function subscribeToSystemTheme(callback) {
 }
 
 export default function Home() {
+  const [activeSection, setActiveSection] = useState("home");
   const [input, setInput] = useState("");
   const [category, setCategory] = useState("");
   const [tag, setTag] = useState("");
@@ -500,460 +505,79 @@ export default function Home() {
           : `${pendingCount} task${pendingCount === 1 ? "" : "s"} still in motion.`;
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden px-3 py-4 pb-28 sm:px-5 sm:py-6 sm:pb-32 lg:px-8 lg:pb-36">
       <div className="pointer-events-none absolute inset-0">
         <div className="theme-orb-left absolute left-[-8rem] top-[-5rem] h-56 w-56 rounded-full blur-3xl animate-[floatPanel_18s_ease-in-out_infinite]" />
         <div className="theme-orb-right absolute right-[-6rem] top-20 h-64 w-64 rounded-full blur-3xl animate-[floatPanel_22s_ease-in-out_infinite_reverse]" />
         <div className="theme-orb-bottom absolute bottom-[-7rem] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-3xl animate-[pulseGlow_10s_ease-in-out_infinite]" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:gap-6">
-        <section className="glass-panel animate-[slideUp_0.6s_ease-out] overflow-hidden rounded-[2rem] p-4 sm:p-6 lg:w-[30rem] lg:p-7 xl:w-[32rem]">
-          <div>
-            <div className="flex items-start justify-between gap-3">
-              <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
-                Daily Focus
-              </span>
+      <div className="relative mx-auto w-full max-w-7xl">
+        <div key={activeSection} className="section-transition">
+          {activeSection === "home" && (
+            <HomeSection
+              THEME_OPTIONS={THEME_OPTIONS}
+              completionRate={completionRate}
+              completedCount={completedCount}
+              heroMessage={heroMessage}
+              isThemeMenuOpen={isThemeMenuOpen}
+              pendingCount={pendingCount}
+              persistThemePreference={persistThemePreference}
+              setIsThemeMenuOpen={setIsThemeMenuOpen}
+              tasksLength={tasks.length}
+              themePreference={themePreference}
+              themeSummary={themeSummary}
+            />
+          )}
 
-              <div className="relative shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsThemeMenuOpen((prev) => !prev)}
-                  aria-label={`Theme menu, current theme ${themeSummary}`}
-                  aria-expanded={isThemeMenuOpen}
-                  className="theme-icon-button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    className="h-[1.05rem] w-[1.05rem]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 3v2.5" />
-                    <path d="M12 18.5V21" />
-                    <path d="m5.64 5.64 1.77 1.77" />
-                    <path d="m16.59 16.59 1.77 1.77" />
-                    <path d="M3 12h2.5" />
-                    <path d="M18.5 12H21" />
-                    <path d="m5.64 18.36 1.77-1.77" />
-                    <path d="m16.59 7.41 1.77-1.77" />
-                    <circle cx="12" cy="12" r="3.25" />
-                  </svg>
-                </button>
+          {activeSection === "todo" && (
+            <TodoSection
+              CATEGORY_OPTIONS={CATEGORY_OPTIONS}
+              FILTERS={FILTERS}
+              TAG_OPTIONS={TAG_OPTIONS}
+              activateDateField={activateDateField}
+              addTask={addTask}
+              category={category}
+              clearAllTasks={clearAllTasks}
+              clearCompleted={clearCompleted}
+              dateActivated={dateActivated}
+              deleteTask={deleteTask}
+              dueDate={dueDate}
+              expandedTaskId={expandedTaskId}
+              exportTaskBoard={exportTaskBoard}
+              filter={filter}
+              filteredTasks={filteredTasks}
+              formatDisplayDate={formatDisplayDate}
+              hasActiveSearch={hasActiveSearch}
+              hasCompletedTasks={hasCompletedTasks}
+              hasTasks={hasTasks}
+              input={input}
+              isInputEmpty={isInputEmpty}
+              openControlPanel={openControlPanel}
+              searchQuery={searchQuery}
+              setCategory={setCategory}
+              setDueDate={setDueDate}
+              setExpandedTaskId={setExpandedTaskId}
+              setFilter={setFilter}
+              setInput={setInput}
+              setSearchQuery={setSearchQuery}
+              setTag={setTag}
+              tag={tag}
+              taskBoardRef={taskBoardRef}
+              tasks={tasks}
+              toggleControlPanel={toggleControlPanel}
+              toggleTask={toggleTask}
+              updateTask={updateTask}
+            />
+          )}
 
-                {isThemeMenuOpen && (
-                  <div className="theme-menu absolute right-0 top-full z-20 mt-2 w-44 rounded-[1.25rem] p-2">
-                    <p className="px-2 pb-1 text-[10px] uppercase tracking-[0.22em] font-lexend theme-copy-muted">
-                      Theme
-                    </p>
-                    <div className="flex flex-col gap-1">
-                      {THEME_OPTIONS.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => {
-                            persistThemePreference(option);
-                            setIsThemeMenuOpen(false);
-                          }}
-                          className={`btn-base w-full justify-between rounded-[0.95rem] px-3 py-2 capitalize ${
-                            themePreference === option
-                              ? "theme-toggle-active"
-                              : "theme-toggle"
-                          }`}
-                        >
-                          <span>{option}</span>
-                          {themePreference === option && <span className="text-xs">[active]</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <h1 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
-              <span className="theme-heading">To-Do</span>{" "}
-              <span className="theme-subheading">List</span>
-            </h1>
-          </div>
+          {activeSection === "routine" && <RoutineSection />}
 
-          <p className="theme-copy mt-5 max-w-sm text-[15px] leading-7 font-alef">
-            A calmer task board with clearer priorities, softer motion, and just enough structure to keep the day moving.
-          </p>
-
-          <div className="theme-card mt-6 rounded-[1.6rem] border p-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-                  Status
-                </p>
-                <p className="theme-heading mt-1 text-base font-lexend">
-                  {heroMessage}
-                </p>
-              </div>
-
-              <div className="theme-card theme-stat-badge rounded-2xl border px-4 py-3 sm:self-stretch">
-                <p className="theme-copy-muted text-[11px] uppercase tracking-[0.24em] font-lexend">
-                  Progress
-                </p>
-                <p className="theme-heading font-lexend text-3xl font-semibold tabular-nums">
-                  {completionRate}%
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-stone-200/80 dark:bg-slate-700/80">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-700 transition-all duration-500"
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <article className="stat-card stat-card-compact animate-[slideUp_0.75s_ease-out]">
-              <span className="stat-label">Total</span>
-              <strong className="stat-value">{tasks.length}</strong>
-            </article>
-            <article className="stat-card stat-card-compact animate-[slideUp_0.85s_ease-out]">
-              <span className="stat-label">Pending</span>
-              <strong className="stat-value">{pendingCount}</strong>
-            </article>
-            <article className="stat-card stat-card-compact animate-[slideUp_0.95s_ease-out]">
-              <span className="stat-label">Completed</span>
-              <strong className="stat-value">{completedCount}</strong>
-            </article>
-          </div>
-
-          <div className="theme-card mt-6 rounded-[1.7rem] border p-4 sm:p-5">
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <div>
-                  <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-                    Quick Capture
-                  </p>
-                  <h2 className="theme-heading mt-1 text-2xl font-space font-bold">
-                    Plan the next move
-                  </h2>
-                </div>
-
-                <p className="theme-copy text-sm leading-6 font-alef">
-                  Add a task fast, keep the extra context optional, and let the board surface what needs attention first.
-                </p>
-              </div>
-
-              <div className="grid gap-3">
-                <label className="flex flex-col gap-2">
-                  <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                    Task
-                  </span>
-                  <input
-                    className="input-shell font-lexend"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Enter task"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isInputEmpty) addTask();
-                    }}
-                  />
-                </label>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex flex-col gap-2">
-                    <span className="theme-copy-muted block min-h-10 text-xs uppercase tracking-[0.22em] font-lexend">
-                      Category
-                      <br />
-                      (Optional)
-                    </span>
-                    <select
-                      className="input-shell font-lexend"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                    >
-                      <option value="">Select category</option>
-                      {CATEGORY_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="flex flex-col gap-2">
-                    <span className="theme-copy-muted block min-h-10 text-xs uppercase tracking-[0.22em] font-lexend">
-                      Tag
-                      <br />
-                      (Optional)
-                    </span>
-                    <select
-                      className="input-shell font-lexend"
-                      value={tag}
-                      onChange={(e) => setTag(e.target.value)}
-                    >
-                      <option value="">Select tag</option>
-                      {TAG_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                  <label className="flex flex-col gap-2">
-                    <span className="theme-copy-muted block min-h-10 text-xs uppercase tracking-[0.22em] font-lexend">
-                      Due Date
-                      <br />
-                      (Optional)
-                    </span>
-                    <input
-                      type={dateActivated || dueDate ? "date" : "text"}
-                      inputMode="numeric"
-                      className={`input-shell font-lexend tabular-nums ${dueDate ? "theme-heading" : "text-stone-400 dark:text-slate-400"}`}
-                      value={dueDate}
-                      placeholder="dd/mm/yyyy"
-                      onFocus={activateDateField}
-                      onClick={activateDateField}
-                      onChange={(e) => setDueDate(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isInputEmpty) addTask();
-                      }}
-                    />
-                  </label>
-
-                  <button
-                    onClick={addTask}
-                    disabled={isInputEmpty}
-                    className={`btn-base btn-lg btn-pill sm:min-w-40 ${
-                      isInputEmpty
-                        ? "btn-muted"
-                        : "theme-cta"
-                    }`}
-                  >
-                    Add Task
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 flex-1 rounded-[2rem] p-3 sm:p-5 lg:p-7">
-          <div
-            data-export-hidden="true"
-            className="task-board-controls"
-          >
-            <div className="task-board-controls-shell">
-              {openControlPanel && (
-                <div className="floating-controls-popover theme-menu rounded-[1.35rem] p-3">
-                  {openControlPanel === "search" && (
-                    <div className="flex min-w-[16rem] flex-col gap-2">
-                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                        Search
-                      </span>
-                      <input
-                        className="input-shell min-h-11 font-lexend"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search tasks, categories, or tags"
-                      />
-                    </div>
-                  )}
-
-                  {openControlPanel === "filter" && (
-                    <div className="flex min-w-[13rem] flex-col gap-2">
-                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                        Filter
-                      </span>
-                      <div className="flex flex-col gap-2">
-                        {FILTERS.map((item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => setFilter(item)}
-                            className={`btn-base btn-sm justify-start capitalize ${
-                              filter === item ? "theme-toggle-active" : "theme-filter"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {openControlPanel === "clear" && (
-                    <div className="flex min-w-[13rem] flex-col gap-2">
-                      <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                        Clear
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (hasCompletedTasks && window.confirm("Clear all completed tasks?")) {
-                            clearCompleted();
-                          }
-                        }}
-                        disabled={!hasCompletedTasks}
-                        className={`btn-base btn-sm justify-start ${
-                          hasCompletedTasks ? "btn-danger" : "btn-muted"
-                        }`}
-                      >
-                        Clear Completed
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (hasTasks && window.confirm("Clear all tasks?")) {
-                            clearAllTasks();
-                          }
-                        }}
-                        disabled={!hasTasks}
-                        className={`btn-base btn-sm justify-start ${
-                          hasTasks ? "btn-danger" : "btn-muted"
-                        }`}
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="theme-panel floating-controls-rail rounded-[1.35rem] p-2">
-                <button
-                  type="button"
-                  onClick={() => toggleControlPanel("search")}
-                  aria-label="Toggle search panel"
-                  className={`theme-icon-button ${openControlPanel === "search" ? "floating-controls-active" : ""}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m20 20-3.5-3.5" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleControlPanel("filter")}
-                  aria-label="Toggle filter panel"
-                  className={`theme-icon-button ${openControlPanel === "filter" ? "floating-controls-active" : ""}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 6h16" />
-                    <path d="M7 12h10" />
-                    <path d="M10 18h4" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleControlPanel("clear")}
-                  aria-label="Toggle clear panel"
-                  className={`theme-icon-button ${openControlPanel === "clear" ? "floating-controls-active" : ""}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4.75A1.75 1.75 0 0 1 9.75 3h4.5A1.75 1.75 0 0 1 16 4.75V6" />
-                    <path d="M6.5 6 7.4 19a2 2 0 0 0 2 1.86h5.2a2 2 0 0 0 2-1.86L17.5 6" />
-                    <path d="M10 10.5v5" />
-                    <path d="M14 10.5v5" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            ref={taskBoardRef}
-            className="theme-task-board rounded-[1.7rem] border p-4 sm:p-5"
-          >
-            <div className="export-board-header flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="export-board-heading">
-                <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-                  Task Board
-                </p>
-                <h3
-                  data-export-hidden="true"
-                  className="theme-heading mt-1 text-2xl font-space font-bold"
-                >
-                  Sorted by urgency
-                </h3>
-              </div>
-
-              <div
-                data-export-hidden="true"
-                className="flex flex-col items-start gap-2 sm:items-end"
-              >
-                <span className="theme-copy-muted text-xs uppercase tracking-[0.22em] font-lexend">
-                  Backup
-                </span>
-                <div className="flex flex-wrap gap-2 sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => exportTaskBoard("png")}
-                    className="btn-base btn-sm theme-filter"
-                  >
-                    PNG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exportTaskBoard("jpg")}
-                    className="btn-base btn-sm theme-filter"
-                  >
-                    JPG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exportTaskBoard("pdf")}
-                    className="btn-base btn-sm theme-filter"
-                  >
-                    PDF
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="export-board-list mt-4 space-y-3">
-              {filteredTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  toggleTask={toggleTask}
-                  deleteTask={deleteTask}
-                  updateTask={updateTask}
-                  formatDisplayDate={formatDisplayDate}
-                  categoryOptions={CATEGORY_OPTIONS}
-                  tagOptions={TAG_OPTIONS}
-                  expandedTaskId={expandedTaskId}
-                  setExpandedTaskId={setExpandedTaskId}
-                />
-              ))}
-
-              {filteredTasks.length === 0 && (
-                <div className="theme-empty rounded-[1.5rem] border px-5 py-10 text-center">
-                  <p className="theme-heading text-xl font-space">
-                    {tasks.length === 0
-                      ? "No tasks yet"
-                      : hasActiveSearch
-                        ? "No matching tasks"
-                        : `No ${filter} tasks`}
-                  </p>
-                  <p className="theme-copy mt-2 text-sm leading-6 font-alef">
-                    {tasks.length === 0
-                      ? "Add your first task, give it a due date if you want, and let the board take care of the ordering."
-                      : hasActiveSearch
-                        ? "Try another search term or add a task that fits this view."
-                        : `Switch filters or add a new task to fill this ${filter} lane.`}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+          {activeSection === "chat" && <ChatSection />}
+        </div>
       </div>
+
+      <BottomNav activeSection={activeSection} setActiveSection={setActiveSection} />
 
       <div className="pointer-events-none absolute left-[-99999px] top-0 opacity-0">
         <div

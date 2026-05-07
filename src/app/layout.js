@@ -1,4 +1,4 @@
-import { Space_Grotesk, Lexend, Alef } from "next/font/google";
+import { Space_Grotesk, Lexend, Andika } from "next/font/google";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -11,10 +11,10 @@ const lexend = Lexend({
   variable: "--font-lexend"
 });
 
-const alef = Alef({
+const andika = Andika({
   subsets: ["latin"],
   weight: ["400", "700"],
-  variable: "--font-alef"
+  variable: "--font-andika"
 });
 
 export const metadata = {
@@ -48,7 +48,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${lexend.variable} ${alef.variable}`}
+        className={`${spaceGrotesk.variable} ${lexend.variable} ${andika.variable}`}
       >
         {children}
       </body>
