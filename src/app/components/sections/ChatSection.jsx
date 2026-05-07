@@ -100,28 +100,39 @@ export default function ChatSection() {
 
   return (
     <section className="glass-panel animate-[slideUp_0.65s_ease-out] rounded-[2rem] p-4 sm:p-6 lg:p-7">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-            AI Chat
-          </p>
-          <h2 className="theme-heading mt-1 text-3xl font-space font-bold">
-            Productivity assistant
-          </h2>
-          <p className="theme-copy mt-3 max-w-2xl text-sm leading-6 font-alef">
-            Ask for routine ideas, consistency tips, study structure, or lighter ways to manage your time. Replies are mocked for now, so the interface is ready before API integration.
-          </p>
-        </div>
+      <div>
+        <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
+          AI Chat
+        </span>
+        <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+          <span className="theme-heading">Ask</span>{" "}
+          <span className="theme-subheading">Clearly</span>
+        </h2>
       </div>
 
-      <div className="chat-shell mt-6">
-        <div ref={messageListRef} className="chat-messages">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
+      <p className="theme-copy mt-3 max-w-md text-[15px] leading-7 font-alef">
+        Ask for routine ideas, study structure, or lighter ways to manage your time. Replies are mocked for now so the interface is ready before API integration.
+      </p>
+
+      <div className="theme-card mt-6 rounded-[1.7rem] border p-4 sm:p-5">
+        <div className="flex flex-col gap-1">
+          <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
+            Productivity Assistant
+          </p>
+          <p className="theme-heading text-base font-alef">
+            Talk through stuck moments and turn vague pressure into the next manageable step.
+          </p>
         </div>
 
-        <ChatInput input={input} onChange={setInput} onSend={sendMessage} />
+        <div className="chat-shell mt-5">
+          <div ref={messageListRef} className="chat-messages">
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+          </div>
+
+          <ChatInput input={input} onChange={setInput} onSend={sendMessage} />
+        </div>
       </div>
     </section>
   );

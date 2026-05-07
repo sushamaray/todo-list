@@ -43,20 +43,28 @@ export default function TodoSection({
   return (
     <div className="todo-section-grid">
       <section className="glass-panel animate-[slideUp_0.6s_ease-out] rounded-[2rem] p-4 sm:p-6 lg:p-7">
-        <div className="theme-card rounded-[1.7rem] border p-4 sm:p-5">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <div>
-                <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-                  Quick Capture
-                </p>
-                <h2 className="theme-heading mt-1 text-2xl font-space font-bold">
-                  Plan the next move
-                </h2>
-              </div>
+        <div>
+          <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
+            Quick Capture
+          </span>
+          <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+            <span className="theme-heading">Plan</span>{" "}
+            <span className="theme-subheading">Fast</span>
+          </h2>
+        </div>
 
-              <p className="theme-copy text-sm leading-6 font-alef">
-                Add a task fast, keep the extra context optional, and let the board surface what needs attention first.
+        <p className="theme-copy mt-3 max-w-sm text-[15px] leading-7 font-alef">
+          Add a task in seconds, keep the extra context optional, and let the board surface what needs attention first.
+        </p>
+
+        <div className="theme-card mt-6 rounded-[1.7rem] border p-4 sm:p-5">
+          <div className="grid gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
+                New Task
+              </p>
+              <p className="theme-heading text-base font-alef">
+                Capture the next move before it slips away.
               </p>
             </div>
 
@@ -158,6 +166,19 @@ export default function TodoSection({
       </section>
 
       <section className="glass-panel animate-[slideUp_0.72s_ease-out] min-w-0 rounded-[2rem] p-3 sm:p-5 lg:p-7">
+        <div className="px-1 pb-4 sm:px-0">
+          <span className="theme-chip inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.28em] font-lexend">
+            Task Board
+          </span>
+          <h2 className="mt-4 text-4xl font-bold leading-none font-space sm:text-[3.25rem]">
+            <span className="theme-heading">See</span>{" "}
+            <span className="theme-subheading">Flow</span>
+          </h2>
+          <p className="theme-copy mt-3 max-w-md text-[15px] leading-7 font-alef">
+            Search, filter, clear, and export from one calmer board that keeps urgent work closest to the top.
+          </p>
+        </div>
+
         <div
           data-export-hidden="true"
           className="task-board-controls"
@@ -288,7 +309,7 @@ export default function TodoSection({
           <div className="export-board-header flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="export-board-heading">
               <p className="theme-copy-muted text-xs uppercase tracking-[0.24em] font-lexend">
-                Task Board
+                Sorted View
               </p>
               <h3
                 data-export-hidden="true"
