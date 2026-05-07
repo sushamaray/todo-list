@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toJpeg, toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import BottomNav from "./components/BottomNav";
-import ChatSection from "./components/sections/ChatSection";
 import HomeSection from "./components/sections/HomeSection";
 import RoutineSection from "./components/sections/RoutineSection";
 import TodoSection from "./components/sections/TodoSection";
@@ -572,8 +571,6 @@ export default function Home() {
           )}
 
           {activeSection === "routine" && <RoutineSection />}
-
-          {activeSection === "chat" && <ChatSection />}
         </div>
       </div>
 

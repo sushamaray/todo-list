@@ -36,17 +36,6 @@ const NAV_ITEMS = [
         <path d="M8 16.5h3" />
       </svg>
     )
-  },
-  {
-    id: "chat",
-    label: "AI Chat",
-    icon: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M7 10.5h10" />
-        <path d="M7 14.5h6" />
-        <path d="M7.5 4h9A3.5 3.5 0 0 1 20 7.5v7A3.5 3.5 0 0 1 16.5 18H12l-4.5 3V18h0A3.5 3.5 0 0 1 4 14.5v-7A3.5 3.5 0 0 1 7.5 4Z" />
-      </svg>
-    )
   }
 ];
 
